@@ -60,20 +60,45 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
 
-      // In a real app, we would use Google's Geocoding API to get the address
-      // For now, we'll just use the coordinates
-      const newLocation: LocationInfo = {
+      // Use Google Maps Geocoding API to get the address
+      const geocoder = new google.maps.Geocoder();
+      const latlng = {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
-        address: "Current Location", // This would normally be fetched from Google's Geocoding API
       };
 
-      setLocation(newLocation);
-      localStorage.setItem('upaharLocation', JSON.stringify(newLocation));
-      
-      toast({
-        title: "Location Found",
-        description: "Your current location has been detected.",
+      geocoder.geocode({ location: latlng }, (results, status) => {
+        if (status === "OK" && results && results[0]) {
+          const newLocation: LocationInfo = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            address: results[0].formatted_address || "Current Location",
+          };
+
+          setLocation(newLocation);
+          localStorage.setItem('upaharLocation', JSON.stringify(newLocation));
+          
+          toast({
+            title: "Location Found",
+            description: "Your current location has been detected.",
+          });
+        } else {
+          // Fallback if geocoding fails
+          const newLocation: LocationInfo = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            address: "Current Location", 
+          };
+
+          setLocation(newLocation);
+          localStorage.setItem('upaharLocation', JSON.stringify(newLocation));
+          
+          toast({
+            title: "Location Found",
+            description: "Your coordinates have been detected, but address lookup failed.",
+          });
+        }
+        setIsLoading(false);
       });
     } catch (error) {
       console.error('Error getting location:', error);
@@ -83,7 +108,6 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
         description: "Failed to get your current location. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
