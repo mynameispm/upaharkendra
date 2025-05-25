@@ -1,13 +1,4 @@
 
-export interface User {
-  id: string;
-  email: string;
-  name?: string;
-  address?: string;
-  phone?: string;
-  created_at: string;
-}
-
 export interface FoodItem {
   id: string;
   name: string;
@@ -15,10 +6,9 @@ export interface FoodItem {
   price: number;
   image: string;
   category: string;
-  vegetarian: boolean;
-  popular?: boolean;
-  calories?: number;
-  ingredients?: string[];
+  vegetarian: boolean; // Changed from isVeg to vegetarian for consistency
+  rating: number;
+  cookingTime: string;
 }
 
 export interface CartItem {
@@ -27,25 +17,30 @@ export interface CartItem {
   quantity: number;
 }
 
-export interface Order {
+export interface User {
   id: string;
-  user_id: string;
-  items: CartItem[];
-  total: number;
-  status: 'pending' | 'preparing' | 'delivering' | 'completed' | 'cancelled';
-  payment_method: 'card' | 'cash' | 'upi';
-  delivery_address: string;
+  email?: string;
+  name?: string;
+  address?: string;
+  phone?: string;
   created_at: string;
 }
 
-export interface Category {
+export interface MenuItem {
   id: string;
   name: string;
+  description: string;
+  price: number;
   image: string;
-}
-
-export interface LocationInfo {
-  address: string;
-  lat: number;
-  lng: number;
+  category: string;
+  vegetarian: boolean;
+  spiceLevel: number;
+  preparationTime: string;
+  ingredients: string[];
+  nutritionalInfo: {
+    calories: number;
+    protein: string;
+    carbs: string;
+    fat: string;
+  };
 }

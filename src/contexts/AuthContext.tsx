@@ -98,7 +98,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      // Mock logout - would be replaced with actual Supabase auth
       setUser(null);
       localStorage.removeItem('upaharUser');
       toast({
@@ -120,7 +119,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       if (!user) throw new Error('User not authenticated');
       
-      // Mock profile update - would be replaced with actual Supabase update
       const updatedUser = { ...user, ...data };
       setUser(updatedUser);
       localStorage.setItem('upaharUser', JSON.stringify(updatedUser));
