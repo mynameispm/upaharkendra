@@ -107,48 +107,32 @@ const About = () => {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="h-48 w-48 mx-auto rounded-full overflow-hidden mb-4">
-                  <img 
-                    src="https://i.pravatar.cc/300?img=60" 
-                    alt="Chef Rajesh Kumar" 
-                    className="w-full h-full object-cover"
-                  />
+                <div className="h-48 w-48 mx-auto rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center mb-4 text-white text-6xl font-bold">
+                  ॐ
                 </div>
-                <h3 className="font-semibold text-lg">Rajesh Kumar</h3>
-                <p className="text-brand-primary">Head Chef</p>
+                <h3 className="font-semibold text-lg">Phaneendra</h3>
+                <p className="text-brand-primary">Founder</p>
               </div>
               <div className="text-center">
-                <div className="h-48 w-48 mx-auto rounded-full overflow-hidden mb-4">
-                  <img 
-                    src="https://i.pravatar.cc/300?img=32" 
-                    alt="Priya Sharma" 
-                    className="w-full h-full object-cover"
-                  />
+                <div className="h-48 w-48 mx-auto rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center mb-4 text-white text-6xl font-bold">
+                  🪷
                 </div>
-                <h3 className="font-semibold text-lg">Priya Sharma</h3>
-                <p className="text-brand-primary">Manager</p>
+                <h3 className="font-semibold text-lg">Manasa</h3>
+                <p className="text-brand-primary">Co-Founder</p>
               </div>
               <div className="text-center">
-                <div className="h-48 w-48 mx-auto rounded-full overflow-hidden mb-4">
-                  <img 
-                    src="https://i.pravatar.cc/300?img=11" 
-                    alt="Amit Singh" 
-                    className="w-full h-full object-cover"
-                  />
+                <div className="h-48 w-48 mx-auto rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center mb-4 text-white text-6xl font-bold">
+                  🕉️
                 </div>
-                <h3 className="font-semibold text-lg">Amit Singh</h3>
-                <p className="text-brand-primary">Service Lead</p>
+                <h3 className="font-semibold text-lg">Deepika</h3>
+                <p className="text-brand-primary">Co-Founder</p>
               </div>
               <div className="text-center">
-                <div className="h-48 w-48 mx-auto rounded-full overflow-hidden mb-4">
-                  <img 
-                    src="https://i.pravatar.cc/300?img=44" 
-                    alt="Neha Patel" 
-                    className="w-full h-full object-cover"
-                  />
+                <div className="h-48 w-48 mx-auto rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center mb-4 text-white text-6xl font-bold">
+                  त्रि
                 </div>
-                <h3 className="font-semibold text-lg">Neha Patel</h3>
-                <p className="text-brand-primary">Customer Relations</p>
+                <h3 className="font-semibold text-lg">Dinesh</h3>
+                <p className="text-brand-primary">Co-Founder</p>
               </div>
             </div>
           </div>
