@@ -12,7 +12,6 @@ interface CartContextType {
   clearCart: () => void;
   getTotalPrice: () => number;
   getTotalItems: () => number;
-  syncWithDatabase: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -24,43 +23,31 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   // Load cart from localStorage on initial load
   useEffect(() => {
-    if (!user) {
-      const storedCart = localStorage.getItem('upaharCart');
-      if (storedCart) {
-        try {
-          setItems(JSON.parse(storedCart));
-        } catch (error) {
-          console.error('Failed to parse stored cart:', error);
-          localStorage.removeItem('upaharCart');
-        }
+    const storedCart = localStorage.getItem('upaharCart');
+    if (storedCart) {
+      try {
+        setItems(JSON.parse(storedCart));
+      } catch (error) {
+        console.error('Failed to parse stored cart:', error);
+        localStorage.removeItem('upaharCart');
       }
     }
-  }, [user]);
+  }, []);
 
-  // Save cart to localStorage whenever it changes (for non-authenticated users)
+  // Save cart to localStorage whenever it changes
   useEffect(() => {
-    if (!user) {
-      localStorage.setItem('upaharCart', JSON.stringify(items));
-    }
-  }, [items, user]);
+    localStorage.setItem('upaharCart', JSON.stringify(items));
+  }, [items]);
 
-  // Temporary sync function - will be implemented later when Supabase types are updated
-  const syncWithDatabase = async () => {
-    if (!user) return;
-    
-    // For now, just log that sync would happen here
-    console.log('Database sync would happen here when types are available');
-  };
-
-  const addToCart = async (foodItem: FoodItem, quantity: number = 1) => {
-    // For now, only handle local storage
+  const addToCart = (foodItem: FoodItem, quantity: number = 1) => {
     setItems(prev => {
-      const itemIndex = prev.findIndex(item => item.foodItem.id === foodItem.id);
-      if (itemIndex >= 0) {
+      const existingItemIndex = prev.findIndex(item => item.foodItem.id === foodItem.id);
+      
+      if (existingItemIndex >= 0) {
         const newItems = [...prev];
-        newItems[itemIndex] = {
-          ...newItems[itemIndex],
-          quantity: newItems[itemIndex].quantity + quantity
+        newItems[existingItemIndex] = {
+          ...newItems[existingItemIndex],
+          quantity: newItems[existingItemIndex].quantity + quantity
         };
         return newItems;
       } else {
@@ -74,7 +61,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeFromCart = async (itemId: string) => {
+  const removeFromCart = (itemId: string) => {
     setItems(prev => {
       const itemToRemove = prev.find(item => item.id === itemId);
       if (!itemToRemove) return prev;
@@ -90,7 +77,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const updateQuantity = async (itemId: string, quantity: number) => {
+  const updateQuantity = (itemId: string, quantity: number) => {
     if (quantity < 1) {
       removeFromCart(itemId);
       return;
@@ -106,7 +93,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const clearCart = async () => {
+  const clearCart = () => {
     setItems([]);
     toast({
       title: "Cart Cleared",
@@ -131,8 +118,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         updateQuantity,
         clearCart,
         getTotalPrice,
-        getTotalItems,
-        syncWithDatabase
+        getTotalItems
       }}
     >
       {children}
