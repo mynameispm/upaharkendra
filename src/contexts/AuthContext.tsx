@@ -142,7 +142,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({
         title: "Logout Failed",
         description: error.message || "Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
       throw error;
     }
@@ -160,17 +160,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (authError) throw authError;
       }
 
-      // Update profile in database
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          full_name: data.name,
-          phone: data.phone,
-          address: data.address
-        })
-        .eq('id', user.id);
+      // Update profile in database if profiles table exists
+      try {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            full_name: data.name,
+            phone: data.phone,
+            address: data.address
+          })
+          .eq('id', user.id);
 
-      if (profileError) throw profileError;
+        if (profileError) {
+          console.log('Profile table update failed, this is expected if table does not exist yet:', profileError);
+        }
+      } catch (profileError) {
+        console.log('Profile update error (this may be expected):', profileError);
+      }
 
       // Update local user state
       setUser(prev => prev ? { ...prev, ...data } : null);

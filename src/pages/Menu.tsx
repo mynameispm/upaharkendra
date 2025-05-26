@@ -19,94 +19,7 @@ import FoodCard from '@/components/FoodCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Loader from '@/components/Loader';
-
-// Mock data for menu items
-const menuItems: FoodItem[] = [
-  {
-    id: '1',
-    name: 'Veg Burger Deluxe',
-    description: 'Delicious veggie patty with fresh lettuce, tomato, and our special sauce.',
-    price: 120,
-    image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1965&auto=format&fit=crop',
-    category: 'burgers',
-    vegetarian: true,
-    popular: true,
-    calories: 450,
-  },
-  {
-    id: '2',
-    name: 'Paneer Tikka',
-    description: 'Grilled cottage cheese cubes marinated in spicy yogurt sauce.',
-    price: 180,
-    image: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d6?q=80&w=2017&auto=format&fit=crop',
-    category: 'starters',
-    vegetarian: true,
-    popular: true,
-    calories: 320,
-  },
-  {
-    id: '3',
-    name: 'Vegetable Biryani',
-    description: 'Fragrant basmati rice cooked with mixed vegetables and aromatic spices.',
-    price: 220,
-    image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?q=80&w=1974&auto=format&fit=crop',
-    category: 'main-course',
-    vegetarian: true,
-    calories: 550,
-  },
-  {
-    id: '4',
-    name: 'Chocolate Brownie',
-    description: 'Rich chocolate brownie served with vanilla ice cream and chocolate sauce.',
-    price: 150,
-    image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?q=80&w=1974&auto=format&fit=crop',
-    category: 'desserts',
-    vegetarian: true,
-    popular: true,
-    calories: 420,
-  },
-  {
-    id: '5',
-    name: 'Masala Dosa',
-    description: 'Crispy rice crepe filled with spiced potato filling, served with chutney and sambar.',
-    price: 130,
-    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?q=80&w=2070&auto=format&fit=crop',
-    category: 'breakfast',
-    vegetarian: true,
-    calories: 380,
-  },
-  {
-    id: '6',
-    name: 'Veg Pulao',
-    description: 'Fragrant rice cooked with mixed vegetables and mild spices.',
-    price: 160,
-    image: 'https://images.unsplash.com/photo-1645177628172-a94c1f96e6db?q=80&w=2080&auto=format&fit=crop',
-    category: 'rice-dishes',
-    vegetarian: true,
-    calories: 420,
-  },
-  {
-    id: '7',
-    name: 'Pav Bhaji',
-    description: 'Spiced vegetable curry served with buttered soft bread rolls.',
-    price: 140,
-    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?q=80&w=2071&auto=format&fit=crop',
-    category: 'street-food',
-    vegetarian: true,
-    popular: true,
-    calories: 460,
-  },
-  {
-    id: '8',
-    name: 'Gulab Jamun',
-    description: 'Deep-fried milk solids soaked in sugar syrup, served warm.',
-    price: 100,
-    image: 'https://images.unsplash.com/photo-1601303755423-fee5477e5e3c?q=80&w=2065&auto=format&fit=crop',
-    category: 'desserts',
-    vegetarian: true,
-    calories: 350,
-  },
-];
+import { useMenuItems } from '@/hooks/useMenuItems';
 
 // Mock data for categories
 const categories: Category[] = [
@@ -114,41 +27,57 @@ const categories: Category[] = [
     id: 'all',
     name: 'All Items',
     image: '',
+    description: '',
+    itemCount: 0,
   },
   {
     id: 'starters',
     name: 'Starters',
     image: 'https://images.unsplash.com/photo-1541557435984-1c79685a082e?q=80&w=1970&auto=format&fit=crop',
+    description: '',
+    itemCount: 0,
   },
   {
     id: 'main-course',
     name: 'Main Course',
     image: 'https://images.unsplash.com/photo-1600335895229-6e75511892c8?q=80&w=1974&auto=format&fit=crop',
+    description: '',
+    itemCount: 0,
   },
   {
     id: 'rice-dishes',
     name: 'Rice Dishes',
     image: 'https://images.unsplash.com/photo-1596097557993-54339f4e051b?q=80&w=1975&auto=format&fit=crop',
+    description: '',
+    itemCount: 0,
   },
   {
     id: 'desserts',
     name: 'Desserts',
     image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=1964&auto=format&fit=crop',
+    description: '',
+    itemCount: 0,
   },
   {
     id: 'burgers',
     name: 'Burgers',
     image: '',
+    description: '',
+    itemCount: 0,
   },
   {
     id: 'breakfast',
     name: 'Breakfast',
     image: '',
+    description: '',
+    itemCount: 0,
   },
   {
     id: 'street-food',
     name: 'Street Food',
     image: '',
+    description: '',
+    itemCount: 0,
   },
 ];
 
@@ -159,18 +88,10 @@ const Menu = () => {
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('popularity');
-  const [isLoading, setIsLoading] = useState(true);
   const [showPopularOnly, setShowPopularOnly] = useState(false);
   const [filteredItems, setFilteredItems] = useState<FoodItem[]>([]);
   
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const { menuItems, loading, error } = useMenuItems();
 
   useEffect(() => {
     // Update URL when category changes
@@ -214,14 +135,24 @@ const Menu = () => {
     }
     
     setFilteredItems(filtered);
-  }, [activeCategory, searchTerm, sortBy, showPopularOnly, setSearchParams]);
+  }, [activeCategory, searchTerm, sortBy, showPopularOnly, setSearchParams, menuItems]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader size="large" />
           <p className="mt-4 text-lg text-muted-foreground">Loading Menu...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-red-600">Error loading menu: {error}</p>
         </div>
       </div>
     );

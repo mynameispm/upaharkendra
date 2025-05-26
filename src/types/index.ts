@@ -69,6 +69,7 @@ export interface DBCartItem {
   menu_item_id: string;
   quantity: number;
   added_at: string;
+  menu_item?: MenuItem;
 }
 
 export interface DBOrder {

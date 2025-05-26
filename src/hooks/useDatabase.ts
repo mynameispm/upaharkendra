@@ -324,7 +324,7 @@ export const useDatabase = () => {
         order_id: order.id,
         menu_item_id: item.menu_item_id,
         quantity: item.quantity,
-        price_at_order: 0 // You'll need to get the price from menu_item
+        price_at_order: item.menu_item?.price || 0
       }));
 
       const { error: itemsError } = await supabase
