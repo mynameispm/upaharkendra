@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -12,81 +11,44 @@ import CategoryCard from '@/components/CategoryCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Loader from '@/components/Loader';
-
-// Mock data for featured foods
-const featuredFoods: FoodItem[] = [
-  {
-    id: '1',
-    name: 'Veg Burger Deluxe',
-    description: 'Delicious veggie patty with fresh lettuce, tomato, and our special sauce.',
-    price: 120,
-    image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1965&auto=format&fit=crop',
-    category: 'burgers',
-    vegetarian: true,
-    popular: true,
-    calories: 450,
-  },
-  {
-    id: '2',
-    name: 'Paneer Tikka',
-    description: 'Grilled cottage cheese cubes marinated in spicy yogurt sauce.',
-    price: 180,
-    image: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d6?q=80&w=2017&auto=format&fit=crop',
-    category: 'starters',
-    vegetarian: true,
-    popular: true,
-    calories: 320,
-  },
-  {
-    id: '3',
-    name: 'Vegetable Biryani',
-    description: 'Fragrant basmati rice cooked with mixed vegetables and aromatic spices.',
-    price: 220,
-    image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?q=80&w=1974&auto=format&fit=crop',
-    category: 'main-course',
-    vegetarian: true,
-    calories: 550,
-  },
-  {
-    id: '4',
-    name: 'Chocolate Brownie',
-    description: 'Rich chocolate brownie served with vanilla ice cream and chocolate sauce.',
-    price: 150,
-    image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?q=80&w=1974&auto=format&fit=crop',
-    category: 'desserts',
-    vegetarian: true,
-    popular: true,
-    calories: 420,
-  },
-];
+import { useMenuItems } from '@/hooks/useMenuItems';
 
 // Mock data for categories
 const categories: Category[] = [
   {
     id: 'starters',
     name: 'Starters',
+    description: 'Delicious appetizers to start your meal',
     image: 'https://images.unsplash.com/photo-1541557435984-1c79685a082e?q=80&w=1970&auto=format&fit=crop',
+    itemCount: 0
   },
   {
     id: 'main-course',
     name: 'Main Course',
+    description: 'Hearty main dishes for a complete meal',
     image: 'https://images.unsplash.com/photo-1600335895229-6e75511892c8?q=80&w=1974&auto=format&fit=crop',
+    itemCount: 0
   },
   {
     id: 'rice-dishes',
     name: 'Rice Dishes',
+    description: 'Aromatic rice preparations',
     image: 'https://images.unsplash.com/photo-1596097557993-54339f4e051b?q=80&w=1975&auto=format&fit=crop',
+    itemCount: 0
   },
   {
     id: 'desserts',
     name: 'Desserts',
+    description: 'Sweet treats to end your meal',
     image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=1964&auto=format&fit=crop',
+    itemCount: 0
   },
 ];
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const { menuItems, loading: menuLoading } = useMenuItems();
 
   useEffect(() => {
     // Simulate loading
@@ -97,7 +59,11 @@ const Index = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  if (isLoading) {
+  const featuredFoods = menuItems.filter(item => item.popular).slice(0, 4);
+  const popularFoods = menuItems.filter(item => item.popular);
+  const newArrivals = menuItems.slice(0, 4);
+
+  if (isLoading || menuLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -256,7 +222,7 @@ const Index = () => {
             
             <TabsContent value="popular" className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {featuredFoods.map((food) => (
+                {popularFoods.map((food) => (
                   <FoodCard key={food.id} food={food} />
                 ))}
               </div>
@@ -264,7 +230,7 @@ const Index = () => {
             
             <TabsContent value="new" className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {featuredFoods.slice().reverse().map((food) => (
+                {newArrivals.map((food) => (
                   <FoodCard key={food.id} food={food} />
                 ))}
               </div>

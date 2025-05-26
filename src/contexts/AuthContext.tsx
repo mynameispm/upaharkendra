@@ -2,9 +2,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { User } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import { Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -17,47 +20,71 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
-    const storedUser = localStorage.getItem('upaharUser');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Failed to parse stored user:', error);
-        localStorage.removeItem('upaharUser');
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session);
+        setSession(session);
+        
+        if (session?.user) {
+          // Convert Supabase user to our User type
+          const userData: User = {
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.user_metadata?.full_name || session.user.email,
+            created_at: session.user.created_at
+          };
+          setUser(userData);
+        } else {
+          setUser(null);
+        }
+        
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setSession(session);
+        const userData: User = {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.full_name || session.user.email,
+          created_at: session.user.created_at
+        };
+        setUser(userData);
+      }
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      // Mock login - would be replaced with actual Supabase auth
-      const mockUser: User = {
-        id: '123',
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        name: 'Test User',
-        address: '123 Test St, City',
-        phone: '1234567890',
-        created_at: new Date().toISOString()
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('upaharUser', JSON.stringify(mockUser));
+        password
+      });
+
+      if (error) throw error;
+
       toast({
         title: "Login Successful",
         description: "Welcome back to UpaharKendra!",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
       toast({
         title: "Login Failed",
-        description: "Please check your credentials and try again.",
+        description: error.message || "Please check your credentials and try again.",
         variant: "destructive",
       });
       throw error;
@@ -69,25 +96,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signup = async (email: string, password: string, name: string) => {
     try {
       setIsLoading(true);
-      // Mock signup - would be replaced with actual Supabase auth
-      const mockUser: User = {
-        id: '123',
+      const { data, error } = await supabase.auth.signUp({
         email,
-        name,
-        created_at: new Date().toISOString()
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('upaharUser', JSON.stringify(mockUser));
+        password,
+        options: {
+          data: {
+            full_name: name
+          }
+        }
+      });
+
+      if (error) throw error;
+
       toast({
         title: "Signup Successful",
-        description: "Welcome to UpaharKendra!",
+        description: "Welcome to UpaharKendra! Please check your email to confirm your account.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Signup error:', error);
       toast({
         title: "Signup Failed",
-        description: "Please try again with different credentials.",
+        description: error.message || "Please try again with different credentials.",
         variant: "destructive",
       });
       throw error;
@@ -98,17 +127,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
       setUser(null);
-      localStorage.removeItem('upaharUser');
+      setSession(null);
+      
       toast({
         title: "Logout Successful",
         description: "You have been logged out.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Logout error:', error);
       toast({
         title: "Logout Failed",
-        description: "Please try again.",
+        description: error.message || "Please try again.",
         variant: "destructive",
       });
       throw error;
@@ -119,19 +152,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       if (!user) throw new Error('User not authenticated');
       
-      const updatedUser = { ...user, ...data };
-      setUser(updatedUser);
-      localStorage.setItem('upaharUser', JSON.stringify(updatedUser));
+      // Update auth metadata if name is being changed
+      if (data.name) {
+        const { error: authError } = await supabase.auth.updateUser({
+          data: { full_name: data.name }
+        });
+        if (authError) throw authError;
+      }
+
+      // Update profile in database
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: data.name,
+          phone: data.phone,
+          address: data.address
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      // Update local user state
+      setUser(prev => prev ? { ...prev, ...data } : null);
       
       toast({
         title: "Profile Updated",
         description: "Your profile has been updated successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Update profile error:', error);
       toast({
         title: "Update Failed",
-        description: "Failed to update profile. Please try again.",
+        description: error.message || "Failed to update profile. Please try again.",
         variant: "destructive",
       });
       throw error;
@@ -142,6 +194,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         user,
+        session,
         isAuthenticated: !!user,
         isLoading,
         login,
