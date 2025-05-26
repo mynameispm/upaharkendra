@@ -160,22 +160,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (authError) throw authError;
       }
 
-      // Update profile in database if profiles table exists
+      // Update profile in database
       try {
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({
+          .upsert({
+            id: user.id,
             full_name: data.name,
+            email: data.email,
             phone: data.phone,
             address: data.address
-          })
-          .eq('id', user.id);
+          });
 
         if (profileError) {
-          console.log('Profile table update failed, this is expected if table does not exist yet:', profileError);
+          console.log('Profile table update failed:', profileError);
         }
       } catch (profileError) {
-        console.log('Profile update error (this may be expected):', profileError);
+        console.log('Profile update error:', profileError);
       }
 
       // Update local user state
