@@ -1,125 +1,115 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useToast } from "@/hooks/use-toast";
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { LocationInfo } from '@/types';
 
 interface LocationContextType {
   location: LocationInfo | null;
-  isLoading: boolean;
-  error: string | null;
-  updateLocation: (location: LocationInfo) => void;
+  setLocation: (location: LocationInfo) => void;
   getCurrentLocation: () => Promise<void>;
+  clearLocation: () => void;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
 export const LocationProvider = ({ children }: { children: ReactNode }) => {
-  const [location, setLocation] = useState<LocationInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-  
-  // Load location from localStorage
-  useEffect(() => {
-    const storedLocation = localStorage.getItem('upaharLocation');
-    if (storedLocation) {
-      try {
-        setLocation(JSON.parse(storedLocation));
-      } catch (error) {
-        console.error('Failed to parse stored location:', error);
-        localStorage.removeItem('upaharLocation');
-      }
-    }
-  }, []);
+  const [location, setLocationState] = useState<LocationInfo | null>(null);
 
-  const updateLocation = (locationData: LocationInfo) => {
-    setLocation(locationData);
-    localStorage.setItem('upaharLocation', JSON.stringify(locationData));
-    toast({
-      title: "Location Updated",
-      description: "Your delivery location has been updated.",
+  const setLocation = (newLocation: LocationInfo) => {
+    setLocationState(newLocation);
+    // Store in localStorage for persistence
+    localStorage.setItem('userLocation', JSON.stringify(newLocation));
+  };
+
+  const getCurrentLocation = async (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser.'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          try {
+            // Use reverse geocoding to get address
+            const response = await fetch(
+              `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=YOUR_API_KEY`
+            );
+            
+            if (response.ok) {
+              const data = await response.json();
+              const address = data.results[0]?.formatted || `${latitude}, ${longitude}`;
+              
+              const locationInfo: LocationInfo = {
+                address,
+                coordinates: {
+                  lat: latitude,
+                  lng: longitude
+                }
+              };
+              
+              setLocation(locationInfo);
+            } else {
+              // Fallback if geocoding fails
+              const locationInfo: LocationInfo = {
+                address: `${latitude}, ${longitude}`,
+                coordinates: {
+                  lat: latitude,
+                  lng: longitude
+                }
+              };
+              
+              setLocation(locationInfo);
+            }
+            
+            resolve();
+          } catch (error) {
+            // Fallback if geocoding fails
+            const locationInfo: LocationInfo = {
+              address: `${latitude}, ${longitude}`,
+              coordinates: {
+                lat: latitude,
+                lng: longitude
+              }
+            };
+            
+            setLocation(locationInfo);
+            resolve();
+          }
+        },
+        (error) => {
+          reject(error);
+        }
+      );
     });
   };
 
-  const getCurrentLocation = async () => {
-    if (!navigator.geolocation) {
-      setError("Geolocation is not supported by your browser");
-      toast({
-        title: "Location Error",
-        description: "Geolocation is not supported by your browser.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-      });
-
-      // Use Google Maps Geocoding API to get the address
-      const geocoder = new google.maps.Geocoder();
-      const latlng = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-      };
-
-      geocoder.geocode({ location: latlng }, (results, status) => {
-        if (status === "OK" && results && results[0]) {
-          const newLocation: LocationInfo = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            address: results[0].formatted_address || "Current Location",
-          };
-
-          setLocation(newLocation);
-          localStorage.setItem('upaharLocation', JSON.stringify(newLocation));
-          
-          toast({
-            title: "Location Found",
-            description: "Your current location has been detected.",
-          });
-        } else {
-          // Fallback if geocoding fails
-          const newLocation: LocationInfo = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            address: "Current Location", 
-          };
-
-          setLocation(newLocation);
-          localStorage.setItem('upaharLocation', JSON.stringify(newLocation));
-          
-          toast({
-            title: "Location Found",
-            description: "Your coordinates have been detected, but address lookup failed.",
-          });
-        }
-        setIsLoading(false);
-      });
-    } catch (error) {
-      console.error('Error getting location:', error);
-      setError("Failed to get your current location");
-      toast({
-        title: "Location Error",
-        description: "Failed to get your current location. Please try again.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    }
+  const clearLocation = () => {
+    setLocationState(null);
+    localStorage.removeItem('userLocation');
   };
+
+  // Load location from localStorage on mount
+  React.useEffect(() => {
+    const savedLocation = localStorage.getItem('userLocation');
+    if (savedLocation) {
+      try {
+        const parsedLocation = JSON.parse(savedLocation);
+        setLocationState(parsedLocation);
+      } catch (error) {
+        console.error('Error parsing saved location:', error);
+      }
+    }
+  }, []);
 
   return (
     <LocationContext.Provider
       value={{
         location,
-        isLoading,
-        error,
-        updateLocation,
-        getCurrentLocation
+        setLocation,
+        getCurrentLocation,
+        clearLocation
       }}
     >
       {children}
