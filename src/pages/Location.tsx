@@ -12,7 +12,7 @@ import Footer from '@/components/Footer';
 import MapComponent from '@/components/MapComponent';
 
 const Location = () => {
-  const { location, updateLocation, isLoading, getCurrentLocation } = useLocation();
+  const { location, setLocation, getCurrentLocation } = useLocation();
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -37,18 +37,24 @@ const Location = () => {
       const mockResults: LocationInfo[] = [
         {
           address: `${searchQuery}, Main Street`,
-          lat: 12.9716 + Math.random() * 0.01,
-          lng: 77.5946 + Math.random() * 0.01,
+          coordinates: {
+            lat: 12.9716 + Math.random() * 0.01,
+            lng: 77.5946 + Math.random() * 0.01,
+          }
         },
         {
           address: `${searchQuery}, Downtown`,
-          lat: 12.9716 + Math.random() * 0.01,
-          lng: 77.5946 + Math.random() * 0.01,
+          coordinates: {
+            lat: 12.9716 + Math.random() * 0.01,
+            lng: 77.5946 + Math.random() * 0.01,
+          }
         },
         {
           address: `${searchQuery}, College Road`,
-          lat: 12.9716 + Math.random() * 0.01,
-          lng: 77.5946 + Math.random() * 0.01,
+          coordinates: {
+            lat: 12.9716 + Math.random() * 0.01,
+            lng: 77.5946 + Math.random() * 0.01,
+          }
         },
       ];
       
@@ -58,7 +64,7 @@ const Location = () => {
   };
   
   const handleSelectLocation = (selectedLocation: LocationInfo) => {
-    updateLocation(selectedLocation);
+    setLocation(selectedLocation);
     
     toast({
       title: "Location Updated",
@@ -107,7 +113,6 @@ const Location = () => {
                 variant="outline" 
                 className="flex items-center"
                 onClick={getCurrentLocation}
-                disabled={isLoading}
               >
                 <Navigation size={16} className="mr-2" />
                 Use Current Location
@@ -133,7 +138,7 @@ const Location = () => {
                   <MapPin size={18} className="mr-2 text-brand-primary mt-1" />
                   <div>
                     <p className="font-medium">{location.address}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Lat: {location.lat.toFixed(6)}, Lng: {location.lng.toFixed(6)}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Lat: {location.coordinates.lat.toFixed(6)}, Lng: {location.coordinates.lng.toFixed(6)}</p>
                   </div>
                 </div>
               </div>

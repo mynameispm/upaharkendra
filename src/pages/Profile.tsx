@@ -357,7 +357,7 @@ const Profile = () => {
                           <div>
                             <p>{location.address}</p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Lat: {location.lat.toFixed(6)}, Lng: {location.lng.toFixed(6)}
+                              Lat: {location.coordinates.lat.toFixed(6)}, Lng: {location.coordinates.lng.toFixed(6)}
                             </p>
                           </div>
                         </div>

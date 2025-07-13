@@ -15,8 +15,8 @@ const MapComponent = ({ height = '300px', interactive = true }: MapComponentProp
   const { location, getCurrentLocation } = useLocation();
   const { toast } = useToast();
   const [mapCenter, setMapCenter] = useState({
-    lat: location?.lat || 12.9716,
-    lng: location?.lng || 77.5946,
+    lat: location?.coordinates?.lat || 12.9716,
+    lng: location?.coordinates?.lng || 77.5946,
   });
   
   const { isLoaded, loadError } = useJsApiLoader({
@@ -34,8 +34,8 @@ const MapComponent = ({ height = '300px', interactive = true }: MapComponentProp
 
   // Update map when location changes
   useEffect(() => {
-    if (location && mapRef.current) {
-      const newCenter = { lat: location.lat, lng: location.lng };
+    if (location?.coordinates && mapRef.current) {
+      const newCenter = { lat: location.coordinates.lat, lng: location.coordinates.lng };
       mapRef.current.panTo(newCenter);
       setMapCenter(newCenter);
     }
@@ -66,7 +66,7 @@ const MapComponent = ({ height = '300px', interactive = true }: MapComponentProp
       onLoad={onMapLoad}
       onUnmount={onMapUnmount}
     >
-      {location && <Marker position={{ lat: location.lat, lng: location.lng }} />}
+      {location?.coordinates && <Marker position={{ lat: location.coordinates.lat, lng: location.coordinates.lng }} />}
     </GoogleMap>
   );
 
